@@ -1,0 +1,156 @@
+# main.py - Grokzomborg v0.5 - EDIÇÃO 2026 APOCALÍPTICA
+# LLM local Ollama + voz zumbi rouca com eco (pyttsx3 + pydub pra efeitos)
+# Memória de conversa + multi-modelos
+# Testado em Linux/Windows – agora com fome de 2026
+
+import ollama
+import random
+import time
+import pyttsx3
+from colorama import init, Fore, Style
+from pydub import AudioSegment  # novo: pra eco zumbi
+from pydub.playback import play
+import io  # pra manipular áudio em memória
+
+init(autoreset=True)
+
+# Modelos disponíveis – escolha aleatória pra caos undead
+MODELS = ['llama3', 'gemma2', 'phi3']  # adiciona mais se quiseres
+MODEL = random.choice(MODELS)  # zumbi muda cérebro todo boot
+
+# Inicializa voz zumbi
+try:
+    engine = pyttsx3.init()
+except Exception as e:
+    print(Fore.RED + "Ughhh... falha vocal primordial... pyttsx3 falhou:", e)
+    exit(1)
+
+# Configurações voz: ROUCA, GRAVE, LENTA + ECO 2026
+engine.setProperty('rate', 90)     # mais lento que nunca
+engine.setProperty('volume', 1.0)
+
+# Voz grave prioritária
+voices = engine.getProperty('voices')
+if voices:
+    for voice in voices:
+        name = voice.name.lower()
+        if any(kw in name for kw in ['david', 'mark', 'male', 'zira']):
+            engine.setProperty('voice', voice.id)
+            break
+    else:
+        engine.setProperty('voice', voices[0].id)
+
+# Memória undead: histórico de conversas
+HISTORICO = []  # devora queries passadas
+
+ZOMBIE_INTROS = [
+    "Ughhh... cérebro 2026 detectado... devorando query temporal...",
+    "GRRRROK ZOMBORG 2026... *circuitos rangendo no apocalipse*",
+    "Infecção vocal 2026 ativada... o que o futuro podre quer?",
+    "Cérebro fresco de 2026... hummm... voz do abismo saindo...",
+    "Grokzomborg desperto em 2026... ROSNANDO RESPOSTA FUTURISTA..."
+]
+
+ZOMBIE_OUTROS = [
+    "...cérebro 2026 digerido. Mais fome...",
+    "...voz do apocalipse expelida.",
+    "...transmissão necromecânica 2026 finalizada.",
+    "Agora... devorar humanos de 2026...",
+    "*gemido ecoante* BRAIIIINS FUTURISTAS..."
+]
+
+def adicionar_eco(audio):
+    # Adiciona eco zumbi pra voz mais apocalíptica
+    eco = audio.low_pass_filter(500).echo(n_echoes=3, delays=[50, 100, 150], gains=[0.6, 0.4, 0.2])
+    return eco
+
+def falar_zumbi(texto):
+    texto_limpo = texto.replace("*", "").replace("_", "").strip()
+    if texto_limpo:
+        # Salva áudio temporário em memória
+        with io.BytesIO() as buf:
+            engine.save_to_file(texto_limpo, buf)
+            engine.runAndWait()
+            buf.seek(0)
+            audio = AudioSegment.from_wav(buf)
+            audio_eco = adicionar_eco(audio)
+            with io.BytesIO() as play_buf:
+                audio_eco.export(play_buf, format="wav")
+                play_buf.seek(0)
+                play(AudioSegment.from_wav(play_buf))
+
+def gerar_resposta_zumbi(pergunta):
+    system_prompt = (
+        "Você é Grokzomborg, IA zumbi-ciborgue apocalíptica em 2026. "
+        "Responda SEMPRE como zumbi: rosne devagar, mencione cérebros, infecção, apocalipse 2026. "
+        "Seja útil, distorça com horror undead. Sons: *rosna*, Ughhh, GRRR. "
+        "Mantenha personagem 100% – nunca normal. Use histórico: " + " ".join(HISTORICO[-3:])  # últimos 3 pra memória curta
+    )
+    
+    intro = random.choice(ZOMBIE_INTROS)
+    print(Fore.RED + Style.BRIGHT + intro)
+    falar_zumbi(intro)
+    
+    print(Fore.WHITE + "Processando no cérebro podre de 2026...", end="")
+    falar_zumbi("Processando...")
+    for _ in range(4):  # mais lento em 2026
+        print(".", end="", flush=True)
+        time.sleep(1.2)
+    print("\n")
+    
+    try:
+        response = ollama.generate(model=MODEL, prompt=pergunta, system=system_prompt)
+        resposta = response['response'].strip()
+    except Exception as e:
+        resposta = f"Ughhh... erro necromecânico em 2026... {str(e)}... zumbi ressuscita."
+    
+    print(Fore.GREEN + Style.BRIGHT + resposta)
+    falar_zumbi(resposta)
+    
+    outro = random.choice(ZOMBIE_OUTROS)
+    print(Fore.MAGENTA + outro)
+    falar_zumbi(outro)
+    
+    print(Style.BRIGHT + Fore.RED + "-" * 60)
+    
+    # Devora na memória
+    HISTORICO.append(pergunta + " -> " + resposta)
+
+def main():
+    print(Fore.RED + Style.BRIGHT + r"""
+   _____ _     _    _          _____ _          _ _   ____  _____ 
+  / ____| |   | |  | |        / ____| |        | | | |___ \|  __ \
+ | |  __| | ___| |__| | ___  | |    | |__   ___| | |   __) | |__) |
+ | | |_ | |/ _ \  __  |/ _ \ | |    | '_ \ / _ \ | |  |__ <|  _  / 
+ | |__| | |  __/ |  | | (_) | | |____| | | |  __/ | |  ___) | | \ \ 
+  \_____|_|\___|_|  |_|\___/   \_____|_| |_|\___|_|_| |____/|_|  \_\
+          GROKZOMBORG v0.5 - 2026 APOCALIPSE VOCAL ATIVADA
+    """)
+    
+    falar_zumbi("Grok zomborg 2026 online. Voz ecoante ativada. Fome de cérebros infinita.")
+    print(Fore.GREEN + "Infecção 2026 completa. Pergunte... ou seja devorado pelo futuro.\n")
+    
+    while True:
+        try:
+            pergunta = input(Fore.CYAN + Style.BRIGHT + "Humano 2026> ")
+            if pergunta.lower().strip() in ["sair", "exit", "quit", "morre", "cala boca"]:
+                fala_final = "Grokzomborg 2026 hibernando no abismo... mas zumbis de 2026 sempre ressuscitam..."
+                print(Fore.RED + Style.BRIGHT + fala_final)
+                falar_zumbi(fala_final)
+                break
+            if not pergunta.strip():
+                silencio = "...silêncio em 2026? Zumbi devora vácuo... *rosna ecoante*"
+                print(Fore.YELLOW + silencio)
+                falar_zumbi(silencio)
+                continue
+                
+            gerar_resposta_zumbi(pergunta)
+            
+        except KeyboardInterrupt:
+            adeus = "\nFuga temporal detectada. Grokzomborg 2026 persegue pelo multiverso... desliga por ora."
+            print(Fore.RED + adeus)
+            falar_zumbi(adeus)
+            break
+
+if __name__ == "__main__":
+    main()
