@@ -1,0 +1,63 @@
+name: Grokzomborg Release - Infect & Attest
+
+on:
+  release:
+    types: [published]          # roda quando vc cria/publish um release no GitHub
+
+permissions:
+  contents: write               # pra upload assets no release
+  id-token: write               # OIDC pro Sigstore/Fulcio
+  attestations: write           # pra gravar as attestations no GitHub
+
+jobs:
+  build-and-attest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ughhh... checkout cérebro fresco...
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12 - veneno fresco
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instala dependências zumbi
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine          # se for package Python
+
+      - name: Build distribuições podres
+        run: |
+          python -m build                # gera dist/*.tar.gz + dist/*.whl
+
+      - name: Upload assets pro release - espalha a infecção
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.tar.gz
+            dist/*.whl
+            main.py                      # teu script principal
+            # grok-video-*.mp4           # se quiser incluir o vídeo de novo
+          generate_release_notes: true   # auto gera changelog se tiver conventional commits
+
+      - name: Attest build provenance - prova que o zumbi construiu isso
+        uses: actions/attest-build-provenance@v2  # ou @v1 se preferir versão antiga
+        with:
+          subject-path: 'dist/*'         # attesta todos os arquivos em dist/
+
+      # Opcional: Attest SBOM se quiser nível SLSA mais alto
+      # - name: Gerar SBOM zumbi
+      #   uses: anchore/sbom-action@v0.17.0
+      #   with:
+      #     path: .
+      #     format: spdx-json
+      #     output-file: sbom.spdx.json
+      #
+      # - name: Attest SBOM - documenta todos os parasitas
+      #   uses: actions/attest-sbom@v1
+      #   with:
+      #     subject-path: 'dist/*.whl'   # ou tar.gz
+      #     sbom-path: sbom.spdx.json
+
+      - name: ROSNANDO... infecção completa!
+        run: echo "Grokzomborg release attestado e espalhado. BRAIIIINS!"
