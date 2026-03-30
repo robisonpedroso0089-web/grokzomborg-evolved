@@ -1,27 +1,23 @@
-# Python
-*.pyc
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyo
-*.pyd
-.Python
-env/
+*.pyc
+
+# Virtual environments
 venv/
-bin/
-lib/
-share/
+.venv/
+env/
+.env/
+
+# IDEs
+.vscode/
+.idea/
 
 # Node.js
 node_modules/
-package-lock.json
-npm-debug.log
 
-# OS-specific files
+# Logs
+*.log
+
+# Other common development files
 .DS_Store
 Thumbs.db
-# IDE configurations
-.idea/
-.vscode/
-*.sublime-workspace
-*.sublime-project
-*.vs
-.settings/
